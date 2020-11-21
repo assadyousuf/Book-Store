@@ -1,125 +1,72 @@
-from collections import namedtuple
 import sys
+import getpass
 
-currentUserInSession = None
-#Class definitions 
-class Book:
-    name = ""
-    ISBN = int
-    author_firstName=""
-    Author_LastName=""
-    SeriesID,SeriesName = int, ""
-    GenreID ,GenreName = int, ""
-    PublisherID, PublisherName = int, ""
-    price = float
-
-    def __init__(self,name,ISBN,Author_FirstName,Author_LastName,price,GenreID,GenreName,PublisherName,PublisherID,SeriesID,SeriesName):
-        self.name=name
-        self.ISBN= ISBN
-        self.author_firstName=Author_FirstName
-        self.Author_LastName=Author_LastName
-        self.SeriesID= SeriesID
-        self.SeriesName= SeriesName
-        self.GenreID=GenreID
-        self.GenreName=GenreName
-        self.PublisherID = PublisherID
-        self.publisherName = PublisherName
-        self.price = price
-    
-
-class cart:
-    books = []
-    orderConfirmation = False
-
-
-    def __init__(self):
-        #empty
-        pass
-
-    def addToCart(self,bookObj):
-        if isinstance(bookObj, Book):
-            self.books.append(bookObj)
-
-
-    def confirmOrder(self):
-        self.orderConfirmation = True
-
-
-class UserAccount:
-    username = ""
-    password = ""
-    cart = []
-    orderConfirmation = False
-    
-
-    def _init_(self, username,password ):
-        self.username = username
-        self.password = password
-
-    def addBookToCart(self,Book_name):
-        self.cart.append(Book_name)
-
-    def confirmOrder(self):
-        self.confirmOrder = True
-
-
-def DisplayBooks(): #prints all books in database
-    pass 
-
-def viewCart(currentUserInSession): #prints strings inside of cart list of a user obj
-    pass
-
-def findWhatBookToAddInCart(): #prompts user for name of book to add to cart and adds it to cart
-    ans = input("What book do you want to add to cart?")
-    if ans not in currentUserInSession.Cart: #only adds book if its not already in cart
-        currentUserInSession.addBookToCart(ans)
-
-
-def loggedIn():
-    options = { A: DisplayBooks(),
-                B: ViewCart(),
-                C: findWhatBookToAddInCart(),
-                D: currentUserInSession.confirmOrder()
-    }
-    
-    ans = input(
-        "A.Display All Books \n B.View Cart\n C.Add Book To Cart\n D.Checkout\n Q.Quit\n")
- 
-    if ans == 'A' or ans == 'B' or ans == 'C' or ans == 'D':
-        options[ans]()
-    elif ans == 'D':
-        sys.exit()
-
-#This function takes in the UserAccount obj and populates the corresponding cart from the table
-def populateUserData(User):
-   pass #populate UserAccount.cart list  with values from the cart table
-    
-
-#Where the program starts
-def printMainMenu():
-    userInput = input ("A. Log In\nB. Create Account\n C. Quit")
-    if userInput == "B": 
-        newUser = UserAccount(input("Create Username:"), input ("Create Password:")) 
-        #add above newly created user to userAccount table
-    elif userInput == "A":
-        userName = input("Username:")
-        password = input("Password:")
-        #check if user exists then create a userAccount obj for it if user exists in user table and set that as currentUserInSession global var. 
-        populateUserData(currentUserInSession)
-        #now show main functions user can do once log in is verified and cart info is pulled in
-        loggedIn()
-
-  
+current_username, current_password, cart,currentlyLoggedIn = "", "", [],False
 
 def main():
-    while True:
-        printMainMenu()
-
+    first_menu_options = {'A':logIn, 'B': CreateAccount }
+    second_menu_options = {'A':SearchForBooks, 'B': AddBookToCart, 'C': displayCart,'D': LogOut}
+    while(True):
+        if currentlyLoggedIn == False:
+            ans = input("Welcome to CSE412 BookStore! Please Select an option\n A.Log In\n B.Create Account\n C.Quit\n")
+            for option in first_menu_options:
+                if ans == option:
+                    first_menu_options[ans]() 
+                elif ans == 'C':
+                    exit_program()    
+                    
+        elif currentlyLoggedIn == True:
+            ans = input("Please Select an option\n A.Search For Book\n B.Add Book To Cart\n C.Display Current Cart\n D.Log Out\n")
+            for option in second_menu_options:
+                if ans == option:
+                    second_menu_options[ans]()
 
     
+
+def logIn():
+    global current_username,current_password,currentlyLoggedIn,cart  
+    if currentlyLoggedIn == False:
+        username_input, password_input = input(" Username: "), getpass.getpass(" Password: ")
+        #verify username_input and password_input exist in the userAccount tables 
+        currentlyLoggedIn = True
+        #set current_username,current_password, and cart to data read from tables
+
+    elif currentlyLoggedIn == True:
+        print(" Already Logged In. Please Log out to log into another account.\n")
+
+def LogOut():
+    global current_username,current_password,currentlyLoggedIn,cart  
+    current_username, current_password, cart,currentlyLoggedIn = "", "", [],False
+
+def CreateAccount():
+    global current_username,current_password,currentlyLoggedIn,cart  
+    newUsername = input(" Enter a username for your new Account:")
+    newPassword = getpass.getpass(" Enter a password for your new Account: ")
+    #add a new user to UserAccount table and create a cart for this user in the cart table
+        
+def SearchForBooks():
+    global current_username,current_password,currentlyLoggedIn,cart  
+    ans = input(" Search By:\n A.Genre\n B.ISBN\n C.Series\n D.Publisher E.Name")
+    # ^ We can use the above to just do a simple select where query depending on the variable the user chooses to filer by
+
+
+def AddBookToCart():
+    global current_username,current_password,currentlyLoggedIn,cart  
+    ans = input(" Please enter the name of the book that you would like to add to your cart") 
+    #verify book trying to be bought exists in book table and add to the global cart variable using cart.append("Book Name")
+
+def displayCart():
+    global current_username,current_password,currentlyLoggedIn,cart  
+    for book in cart: #Here we can just loop through the cart variable and display everything in there
+        pass  #print book name
+
+
 
 if __name__ == "__main__":
     main()
 
+def exit_program():
+    sys.exit() #Just ends program 
 
 
+    
