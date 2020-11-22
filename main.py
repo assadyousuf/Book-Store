@@ -1,17 +1,29 @@
 import sys
 import getpass
 import psycopg2
-from psycopg2 import Error
+from psycopg2.errors import UniqueViolation
+from tabulate import tabulate
+from psycopg2.extensions import AsIs
 
 
 
-current_username, current_password, cart,currentlyLoggedIn = "", "", [""],False
-connection = psycopg2.connect(user = "assadyousuf",host = "127.0.0.1", port = "5432", database = "catalog")
-cursor = connection.cursor()
-    
+try:
+    current_username, current_password, cart,currentlyLoggedIn = "", "", [""],False
+    connection = psycopg2.connect(user = "assadyousuf",host = "127.0.0.1", port = "5432", database = "catalog")
+    cursor = connection.cursor()
+
+except(Exception, psycopg2.Error) as Error:
+    print("Error While connecting to Postgre SQL",Error)
+
+
+def exit_program():
+    connection.close()
+    cursor.close()
+    quit() #Just ends program 
+
 def main():
     first_menu_options = {'A':logIn, 'B': CreateAccount }
-    second_menu_options = {'A':SearchForBooks, 'B': AddBookToCart, 'C': displayCart,'D': LogOut}
+    second_menu_options = {'A':FilterBooksBy, 'B': AddBookToCart, 'C': displayCart,'D': LogOut}
     while(True):
         if currentlyLoggedIn == False:
             ans = raw_input("Welcome to CSE412 BookStore! Please Select an option\n A.Log In\n B.Create Account\n C.Quit\n")
@@ -22,7 +34,7 @@ def main():
                     exit_program()    
                     
         elif currentlyLoggedIn == True:
-            ans = raw_input("Please Select an option\n A.Search For Book\n B.Add Book To Cart\n C.Display Current Cart\n D.Log Out\n")
+            ans = raw_input("Please Select an option\n A.Filter Books By\n B.Add Book To Cart\n C.Display Current Cart\n D.Log Out\n")
             for option in second_menu_options:
                 if ans == option:
                     second_menu_options[ans]()
@@ -43,9 +55,10 @@ def logIn():
         current_username, current_password = record[0], record[1] #setting global user and password to verified user logging in
 
         #populate cart with names from the books of the tables currentlyInCart naturalJOIN with book
-        cursor.execute("SELECT * FROM has NATURAL JOIN currentlyincart NATURAL JOIN book;")
+        cursor.execute("SELECT * FROM has NATURAL JOIN currentlyincart NATURAL JOIN book")
         del cart[:] #clears cart
-        for row in cursor: #loops through table and finds the rows where username matches current user logged in and adds books to cart
+        record = cursor.fetchall()
+        for row in record: #loops through table and finds the rows where username matches current user logged in and adds books to cart
             if(row[2] == current_username):
                 cart.append(row[4])
         
@@ -60,27 +73,72 @@ def LogOut():
 def CreateAccount():
     global current_username,current_password,currentlyLoggedIn,cart,cursor  
     newUsername = raw_input("Enter a username for your new Account: ")
-    newPassword = getpass.getpass(" Enter a password for your new Account: ")
+    newPassword = getpass.getpass("Enter a password for your new Account: ")
     #add a new user to UserAccount table and create a cart for this user in the cart table
-    cursor.execute("INSERT INTO UserAccount (username, password) VALUES (%s, %s);", (newUsername,newPassword))
-    cursor.execute("INSERT INTO Cart (total) VALUES (0);")
-    cursor.execute("INSERT INTO has (username, cartid) VALUES(%s, currval(pg_get_serial_sequence('Cart', 'id')));", newUsername )
+    try:
+        cursor.execute("INSERT INTO UserAccount (username, password) VALUES (%s, %s)", [newUsername,newPassword])
+        cursor.execute("INSERT INTO Cart (total) VALUES (0)")
+        cursor.execute("INSERT INTO has (username, cartid) VALUES(%s, currval(pg_get_serial_sequence('cart','id')))", [newUsername] )
+        connection.commit()
+    except UniqueViolation:
+        print("You are trying to create an account that already exists!\n")  
 
         
-def SearchForBooks():
+def FilterBooksBy():
     global current_username,current_password,currentlyLoggedIn,cart,cursor  
-    ans = raw_input(" Search By:\n A.Genre\n B.ISBN\n C.Series\n D.Publisher E.Name")
+    options =  {'A':"Genre", 'B': "ISBN", 'C':"Series" , 'D':"Publisher"}
+    ans = raw_input(" Search By:\n A.Genre\n B.ISBN\n C.Series\n D.Publisher\n")
+    string = options[ans]
+    if ans == 'A' :
+        cursor.execute("SELECT book.name,genre.name FROM  genre NATURAL JOIN hasGenre LEFT JOIN book ON hasGenre.isbn=book.isbn;")
+        table = cursor.fetchall()
+        headers = ["Book Name", string]
+        print(tabulate(table,headers, tablefmt="fancy_grid"))   
+    elif ans == 'B':
+        cursor.execute("SELECT book.name,book.isbn FROM book")
+        table = cursor.fetchall()
+        headers = ["Book Name", string]
+        print(tabulate(table,headers, tablefmt="fancy_grid"))
+    elif ans == 'C':
+        cursor.execute( "SELECT book.name,Series.name FROM  Series NATURAL JOIN hasSeries LEFT JOIN book ON hasSeries.isbn=book.isbn")
+        table = cursor.fetchall()
+        headers = ["Book Name", string]
+        print(tabulate(table,headers, tablefmt="fancy_grid"))
+    elif ans == 'D':
+        cursor.execute("SELECT book.name,publisher.name FROM publisher LEFT JOIN book ON publisher.id = book.publisher")
+        table = cursor.fetchall()
+        headers = ["Book Name", string]
+        print(tabulate(table,headers, tablefmt="fancy_grid"))
+    elif ans == 'E':
+        cursor.execute("SELECT book.name FROM book")
+
+
+
+
     # ^ We can use the above to just do a simple select where query depending on the variable the user chooses to filer by
 
 
 def AddBookToCart():
     global current_username,current_password,currentlyLoggedIn,cart,cursor  
     ans = raw_input(" Please enter the name of the book that you would like to add to your cart") 
-    #verify book trying to be bought exists in book table and add to the global cart variable using cart.append("Book Name")
+    cursor.execute("SELECT * FROM book WHERE book.name=%s",[ans])
+    record = cursor.fetchall()
+    if len(record) == 0:
+        print("Book does not exist in our catalog!\n")
+        return
+
+    cursor.execute("SELECT * FROM has WHERE has.username=%s", current_username)
+    cartid_query = cursor.fetchone()    
+    for row in record:
+        cart.append(row[2])
+        cursor.execute("INSERT INTO currentlyincart (cartid, isbn) VALUES (%s, %s)", [cartid_query[1],row[0]])
+        connection.commit()
+             
+    #verify book trying to be bought exists in book table and add to the global cart variable using cart.append("Book Name") and also add it to currentlyInCart Table
 
 def displayCart():
     global current_username,current_password,currentlyLoggedIn,cart,cursor 
-    if cart.count == 0:
+    if len(cart) == 0:
         print("Cart is empty\n") 
         return
 
@@ -92,10 +150,8 @@ def displayCart():
 if __name__ == "__main__":
     main()
 
-def exit_program():
-    sys.exit() #Just ends program 
 
-
+   
 
 
 ######################################################################################
