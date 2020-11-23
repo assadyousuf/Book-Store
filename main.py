@@ -14,7 +14,7 @@ class cartObject:
         self.price=price
 
 try:
-    current_username, current_password, cart,currentlyLoggedIn, currentTotal = "", "", [""],False,0
+    current_username, current_password, cart,currentlyLoggedIn, currentTotal,currentcartid = "", "", [""],False,0,0
     connection = psycopg2.connect(user = "assadyousuf",host = "127.0.0.1", port = "5432", database = "catalog")
     cursor = connection.cursor()
 
@@ -29,7 +29,7 @@ def exit_program():
 
 def main():
     first_menu_options = {'A':logIn, 'B': CreateAccount }
-    second_menu_options = {'A':FilterBooksBy, 'B': AddBookToCart, 'C': displayCart,'D': SearchForBooks, 'E':LogOut, 'F':Checkout}
+    second_menu_options = {'A':FilterBooksBy, 'B': AddBookToCart, 'C': displayCart,'D': SearchForBooks, 'E':Checkout, 'F':deleteAccount, 'G':LogOut}
     while(True):
         if currentlyLoggedIn == False:
             ans = raw_input("Welcome to CSE412 BookStore! Please Select an option\n A.Log In\n B.Create Account\n C.Quit\n")
@@ -40,14 +40,14 @@ def main():
                     exit_program()    
                     
         elif currentlyLoggedIn == True:
-            ans = raw_input("Please Select an option\n A.Filter Books By\n B.Add Book To Cart\n C.Display Current Cart\n D.Search For Book\n E.Log Out\n F:Checkout\n")
+            ans = raw_input("Please Select an option\n A.Filter Books By\n B.Add Book To Cart\n C.Display Current Cart\n D.Search For Book\n E.Checkout\n F:Delete Account\n G:LogOut\n")
             for option in second_menu_options:
                 if ans == option:
                     second_menu_options[ans]()
 
     
 def logIn():
-    global current_username,current_password,currentlyLoggedIn,cart,cursor,currentTotal  
+    global current_username,current_password,currentlyLoggedIn,cart,cursor,currentTotal,currentcartid  
     if currentlyLoggedIn == False:
         username_input, password_input = raw_input(" Username: "), getpass.getpass(" Password: ")
         #verify username_input and password_input exist in the userAccount tables
@@ -78,29 +78,37 @@ def logIn():
                 currentTotal = float(row[3])
 
 
+        #setting cartId of user logging in for local use
+        cursor.execute("SELECT * FROM useraccount NATURAL JOIN has WHERE useraccount.username = %s", [current_username])
+        record = cursor.fetchone() 
+        currentcartid = record[2]
+
+        
+
+
     elif currentlyLoggedIn == True:
         print(" Already Logged In. Please Log out to log into another account.\n")
 
 def LogOut():
-    global current_username,current_password,currentlyLoggedIn,cart,cursor 
-    current_username, current_password, cart,currentlyLoggedIn = "", "", [],False
+    global current_username,current_password,currentlyLoggedIn,cart,cursor,cartid,currentTotal,currentcartid
+    current_username, current_password, cart,currentlyLoggedIn,currentTotal,currentcartid = "", "", [],False,0,0
 
 def CreateAccount():
-    global current_username,current_password,currentlyLoggedIn,cart,cursor  
+    global current_username,current_password,currentlyLoggedIn,cart,cursor,currentTotal,currentcartid 
     newUsername = raw_input("Enter a username for your new Account: ")
     newPassword = getpass.getpass("Enter a password for your new Account: ")
     #add a new user to UserAccount table and create a cart for this user in the cart table
     try:
         cursor.execute("INSERT INTO UserAccount (username, password) VALUES (%s, %s)", [newUsername,newPassword])
         cursor.execute("INSERT INTO Cart (total) VALUES (0)")
-        cursor.execute("INSERT INTO has (username, cartid) VALUES(%s, currval(pg_get_serial_sequence('cart','id')))", [newUsername] )
+        cursor.execute("INSERT INTO has (username, id) VALUES(%s, currval(pg_get_serial_sequence('cart','id')))", [newUsername] )
         connection.commit()
     except UniqueViolation:
         print("You are trying to create an account that already exists!\n")  
 
         
 def FilterBooksBy():
-    global current_username,current_password,currentlyLoggedIn,cart,cursor  
+    global current_username,current_password,currentlyLoggedIn,cart,cursor,currentTotal,currentcartid  
     options =  {'A':"Genre", 'B': "ISBN", 'C':"Series" , 'D':"Publisher"}
     ans = raw_input(" Search By:\n A.Genre\n B.ISBN\n C.Series\n D.Publisher\n")
     string = options[ans]
@@ -134,7 +142,7 @@ def FilterBooksBy():
 
 
 def AddBookToCart():
-    global current_username,current_password,currentlyLoggedIn,cart,cursor,currentTotal  
+    global current_username,current_password,currentlyLoggedIn,cart,cursor,currentTotal,currentcartid 
     ans = raw_input("Please enter the name of the book that you would like to add to your cart\n") 
     cursor.execute("SELECT * FROM book WHERE book.name=%s",[ans])
     record = cursor.fetchone()
@@ -162,7 +170,7 @@ def AddBookToCart():
 
 
 def displayCart():
-    global current_username,current_password,currentlyLoggedIn,cart,cursor 
+    global current_username,current_password,currentlyLoggedIn,cart,cursor,currentTotal,currentcartid 
     tempTable = []
     if len(cart) == 0:
         print("Cart is empty\n") 
@@ -177,7 +185,7 @@ def displayCart():
        
 
 def SearchForBooks():
-     global current_username,current_password,currentlyLoggedIn,cart,cursor  
+     global current_username,current_password,currentlyLoggedIn,cart,cursor,currentTotal,currentcartid
      ans = raw_input(" Please enter the name of the book that you would like to search for in our catalog: \n") 
      cursor.execute("SELECT isbn,name,description,edition,noofpages FROM book WHERE book.name=%s",[ans])
      table = cursor.fetchall()
@@ -189,18 +197,53 @@ def SearchForBooks():
      print(tabulate(table,headers, tablefmt="fancy_grid"))
 
 def Checkout():
-    global currentTotal
+    global current_username,current_password,currentlyLoggedIn,cart,cursor,currentTotal,currentcartid
+
+    if len(cart)==0:
+        print("Cart is empty!")
+        return
+
     for item in cart:
         currentTotal= currentTotal + item.price
     print("Current Total:" + str(currentTotal) + "\nWould You like to purchase the following books in your cart:")
     displayCart()
+    
+    
     ans = raw_input("Please answer Y/N\n")
-    if ans == "Y":
+    if ans == "Y" and len(cart)!=0:
         currentTotal = 0.00
+        shipping=raw_input("Please enter a shipping address:\n")
+        cursor.execute("INSERT INTO orderconfirmation (id, address) VALUES(%s,%s)",[currentcartid,shipping])
+        print("Order Confirmed! Shipping books to " + shipping)
+        connection.commit()
+      
 
 
 
 
+
+def deleteAccount():
+    global current_username,current_password,currentlyLoggedIn,cart,cursor,currentTotal,currentcartid
+    
+    del cart[:] #clears cart  
+    cursor.execute("DELETE FROM useraccount WHERE username = %s", [current_username])
+    cursor.execute("DELETE FROM has WHERE has.username=%s",[current_username])
+    cursor.execute("DELETE FROM currentlyincart where id = %s", [currentcartid])
+    cursor.execute("DELETE FROM orderconfirmation WHERE id=%s",[currentcartid])
+    cursor.execute("DELETE FROM cart WHERE cart.id=%s",[currentcartid])
+    connection.commit()
+   
+    connection.commit()
+
+    current_username, current_password, cart,currentlyLoggedIn, currentTotal,currentcartid = "", "", [""],False,0,0
+
+    print("Account sucesfully deleted!\n")
+
+
+
+
+
+current_username, current_password, cart,currentlyLoggedIn, currentTotal = "", "", [""],False,0
 if __name__ == "__main__":
     main()
 
