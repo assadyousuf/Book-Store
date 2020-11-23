@@ -6,9 +6,15 @@ from tabulate import tabulate
 from psycopg2.extensions import AsIs
 
 
+class cartObject:
+    name=""
+    price=0.00
+    def __init__(self,name,price):
+        self.name=name
+        self.price=price
 
 try:
-    current_username, current_password, cart,currentlyLoggedIn = "", "", [""],False
+    current_username, current_password, cart,currentlyLoggedIn, currentTotal = "", "", [""],False,0
     connection = psycopg2.connect(user = "assadyousuf",host = "127.0.0.1", port = "5432", database = "catalog")
     cursor = connection.cursor()
 
@@ -23,7 +29,7 @@ def exit_program():
 
 def main():
     first_menu_options = {'A':logIn, 'B': CreateAccount }
-    second_menu_options = {'A':FilterBooksBy, 'B': AddBookToCart, 'C': displayCart,'D': LogOut}
+    second_menu_options = {'A':FilterBooksBy, 'B': AddBookToCart, 'C': displayCart,'D': SearchForBooks, 'E':LogOut, 'F':Checkout}
     while(True):
         if currentlyLoggedIn == False:
             ans = raw_input("Welcome to CSE412 BookStore! Please Select an option\n A.Log In\n B.Create Account\n C.Quit\n")
@@ -34,14 +40,14 @@ def main():
                     exit_program()    
                     
         elif currentlyLoggedIn == True:
-            ans = raw_input("Please Select an option\n A.Filter Books By\n B.Add Book To Cart\n C.Display Current Cart\n D.Log Out\n")
+            ans = raw_input("Please Select an option\n A.Filter Books By\n B.Add Book To Cart\n C.Display Current Cart\n D.Search For Book\n E.Log Out\n F:Checkout\n")
             for option in second_menu_options:
                 if ans == option:
                     second_menu_options[ans]()
 
     
 def logIn():
-    global current_username,current_password,currentlyLoggedIn,cart,cursor  
+    global current_username,current_password,currentlyLoggedIn,cart,cursor,currentTotal  
     if currentlyLoggedIn == False:
         username_input, password_input = raw_input(" Username: "), getpass.getpass(" Password: ")
         #verify username_input and password_input exist in the userAccount tables
@@ -55,13 +61,22 @@ def logIn():
         current_username, current_password = record[0], record[1] #setting global user and password to verified user logging in
 
         #populate cart with names from the books of the tables currentlyInCart naturalJOIN with book
-        cursor.execute("SELECT * FROM has NATURAL JOIN currentlyincart NATURAL JOIN book")
-        del cart[:] #clears cart
+        cursor.execute("SELECT * FROM has NATURAL JOIN cart NATURAL JOIN currentlyincart NATURAL JOIN book;")
+        del cart[:] #clears cart 
+        currentTotal = 0 #clears current total
         record = cursor.fetchall()
         for row in record: #loops through table and finds the rows where username matches current user logged in and adds books to cart
             if(row[2] == current_username):
-                cart.append(row[4])
-        
+                cartEntry = cartObject(row[5],float(row[9]))
+                cart.append(cartEntry)
+                
+        #grabbing totals for each cart:
+        cursor.execute("SELECT * FROM has NATURAL JOIN cart NATURAL JOIN currentlyincart NATURAL JOIN book")
+        record = cursor.fetchall()
+        for row in record: #loops through table and finds the rows where username matches current user logged in and adds books to cart
+            if(row[2] == current_username):
+                currentTotal = float(row[3])
+
 
     elif currentlyLoggedIn == True:
         print(" Already Logged In. Please Log out to log into another account.\n")
@@ -119,31 +134,70 @@ def FilterBooksBy():
 
 
 def AddBookToCart():
-    global current_username,current_password,currentlyLoggedIn,cart,cursor  
-    ans = raw_input(" Please enter the name of the book that you would like to add to your cart") 
+    global current_username,current_password,currentlyLoggedIn,cart,cursor,currentTotal  
+    ans = raw_input("Please enter the name of the book that you would like to add to your cart\n") 
     cursor.execute("SELECT * FROM book WHERE book.name=%s",[ans])
-    record = cursor.fetchall()
+    record = cursor.fetchone()
     if len(record) == 0:
         print("Book does not exist in our catalog!\n")
         return
-
-    cursor.execute("SELECT * FROM has WHERE has.username=%s", current_username)
-    cartid_query = cursor.fetchone()    
+  
+    cartEntry = cartObject(record[2],float(record[6]))
+    isbn = record[0]
+    cart.append(cartEntry)
+    
+    cursor.execute("SELECT * FROM has NATURAL JOIN cart")
+    record = cursor.fetchall()
     for row in record:
-        cart.append(row[2])
-        cursor.execute("INSERT INTO currentlyincart (cartid, isbn) VALUES (%s, %s)", [cartid_query[1],row[0]])
-        connection.commit()
-             
+        if row[1] == current_username:
+            currentTotal+= float(cartEntry.price)
+            string = str(currentTotal)
+            cursor.execute("UPDATE cart SET total = %s WHERE id=%s",(string,row[0]))    
+            cursor.execute("INSERT INTO currentlyincart (id,isbn) VALUES(%s,%s)" ,(row[0],isbn))   
+            connection.commit()  
+
+
+         
     #verify book trying to be bought exists in book table and add to the global cart variable using cart.append("Book Name") and also add it to currentlyInCart Table
+
 
 def displayCart():
     global current_username,current_password,currentlyLoggedIn,cart,cursor 
+    tempTable = []
     if len(cart) == 0:
         print("Cart is empty\n") 
         return
 
     for book in cart: #Here we can just loop through the cart variable and display everything in there
-        print(book)
+        tempTable.append([book.name,str(book.price)])     
+        #print(book.name+"            "+ str(book.price) + "$")
+
+    headers = ["Book","Price"]
+    print(tabulate(tempTable,headers, tablefmt="fancy_grid"))    
+       
+
+def SearchForBooks():
+     global current_username,current_password,currentlyLoggedIn,cart,cursor  
+     ans = raw_input(" Please enter the name of the book that you would like to search for in our catalog: \n") 
+     cursor.execute("SELECT isbn,name,description,edition,noofpages FROM book WHERE book.name=%s",[ans])
+     table = cursor.fetchall()
+     headers = ["ISBN","Name", "Description", "Edition","No. Pages" ]
+     if len(table) == 0:
+        print("Book does not exist in our catalog!\n")
+        return
+
+     print(tabulate(table,headers, tablefmt="fancy_grid"))
+
+def Checkout():
+    global currentTotal
+    for item in cart:
+        currentTotal= currentTotal + item.price
+    print("Current Total:" + str(currentTotal) + "\nWould You like to purchase the following books in your cart:")
+    displayCart()
+    ans = raw_input("Please answer Y/N\n")
+    if ans == "Y":
+        currentTotal = 0.00
+
 
 
 
