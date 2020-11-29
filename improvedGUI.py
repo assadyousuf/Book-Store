@@ -47,6 +47,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.LogOutButton.clicked.connect(lambda: self.logOut())
         self.deleteAccountButton.clicked.connect(lambda: self.deleteAccount())
         self.checkoutButtonCheckout.clicked.connect(lambda: self.checkoutCart())
+        self.orderHistoryButton.clicked.connect(lambda: self.switchToOrderHistoryPage())
+       
 
         #Filter Page
         self.genreButton.clicked.connect(lambda: self.displayByFilter(self.genreButton.text()) )
@@ -61,6 +63,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.backButtonChcekoutPage.clicked.connect(lambda: self.setupMainMenu() )
 
 
+        #order history page
+        self.backOrderHistoryButton.clicked.connect(lambda: self.setupMainMenu() )
+
+
 
         
         
@@ -68,6 +74,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         if page == "Main Menu":
             self.stackedWidget.setCurrentIndex(1)
         elif page == "LogIn Page":
+            self.usernameInput.clear();self.passwordInput.clear();self.label.setText("Enter Username and Password")
             self.stackedWidget.setCurrentIndex(2)    
         elif page == "Filter By Book Page":
             self.stackedWidget.setCurrentIndex(3)
@@ -76,7 +83,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         elif page == "Start Page":
             self.stackedWidget.setCurrentIndex(0) 
         elif page == "Create Account Page":
-            self.stackedWidget.setCurrentIndex(5)           
+            self.createUsernameInput.clear(); self.createPasswordInput.clear(); self.createLabel.setText("Please enter username and password for new account")
+            self.stackedWidget.setCurrentIndex(5)
+        elif page == "Order History Page":
+            self.stackedWidget.setCurrentIndex(6)               
 
     def logIn(self):
         result = p.logIn(self.usernameInput.text(),self.passwordInput.text()); 
@@ -90,6 +100,9 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def setupMainMenu(self):
         if len(p.cart) > 0:
             self.displayCart(self.cartTableMainMenu)
+            self.cartTableMainMenu.resizeColumnsToContents() 
+        else:
+            self.cartTableMainMenu.clear()
 
         self.setItemsInComboBox()
         self.userSatusLabel.setText("User: "+ p.current_username)
@@ -133,6 +146,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 for j in range(0,columns):
                     self.tableWidget.setItem(i,j,QtWidgets.QTableWidgetItem((table[i][j])))  
 
+        self.tableWidget.resizeColumnsToContents()           
+
     def displayCart(self,table):
         cartList =  []
         for book in p.cart:
@@ -144,6 +159,16 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             for j in range(0,2):
                 table.setItem(i,j,QtWidgets.QTableWidgetItem((cartList[i][j])))
 
+        rowpositon=table.rowCount()
+        table.insertRow(rowpositon)
+        
+        table.setItem(rowpositon,0,QtWidgets.QTableWidgetItem("Total"))
+        table.setItem(rowpositon,1,QtWidgets.QTableWidgetItem(str(p.currentTotal)))
+
+        
+
+
+
     def setItemsInComboBox(self):
         table = p.FilterBooksBy("Name")
         for book in table:
@@ -154,7 +179,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         p.AddBookToCart(str(self.comboBox.currentText()))
 
         self.displayCart(self.cartTableMainMenu)
-        
+
         #rowPosition = self.cartTableMainMenu.rowCount()
         #self.cartTableMainMenu.insertRow(rowPosition)
 
@@ -165,6 +190,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def setupCheckoutPage(self):
         if len(p.cart) > 0:
             self.displayCart(self.tableWidget_2)
+
         self.switchTo("Checkout")
 
     def logOut(self):
@@ -198,6 +224,40 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             while(self.tableWidget_2.rowCount() > 0):
                 self.tableWidget_2.removeRow(0)
 
+    def switchToOrderHistoryPage(self):
+        table = p.returnOrderTable()
+        if table == False:
+            return
+
+        #model = QtGui.QStandardItemModel()
+        #model.setHorizontalHeaderLabels(['Order ID','Address','Books','Total'])
+        #self.orderTable.setModel(model)
+
+
+
+
+        self.orderTable.setColumnCount(len(table[0])); self.orderTable.setRowCount(len(table)+1);rows=len(table); columns=len(table[0]);
+
+
+        self.orderTable.setItem(0,0,QtWidgets.QTableWidgetItem("Order ID"))
+        self.orderTable.setItem(0,1,QtWidgets.QTableWidgetItem("Address"))
+        self.orderTable.setItem(0,2,QtWidgets.QTableWidgetItem("Books")) 
+        self.orderTable.setItem(0,3,QtWidgets.QTableWidgetItem("Total"))
+        self.orderTable.setItem(0,4,QtWidgets.QTableWidgetItem("Username"))
+
+
+        for i in range(0,rows):
+            for j in range(0,columns):
+                if type(table[i][j]) != str:
+                   self.orderTable.setItem(i+1,j,QtWidgets.QTableWidgetItem((str(table[i][j])))) 
+                elif type(table[i][j]) == str:
+                    self.orderTable.setItem(i+1,j,QtWidgets.QTableWidgetItem((table[i][j])))       
+
+
+       # self.orderTable.setHorizontalHeaderLabels(("Order ID","Address","Books","Total","Username"))
+       
+        self.orderTable.resizeColumnsToContents()
+        self.switchTo("Order History Page")
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

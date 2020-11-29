@@ -244,7 +244,8 @@ class program:
        # shipping=input("Please enter a shipping address:\n")
         #    self.cursor.execute("INSERT INTO orderconfirmation (id, address) VALUES(%s,%s)",[self.currentcartid,shipping])
         shipping = address
-        self.cursor.execute("INSERT INTO orderTable VALUES(DEFAULT,%s,%s,%s)",[shipping,cartItems,self.currentTotal])
+        self.cursor.execute("INSERT INTO orderTable VALUES(DEFAULT,%s,%s,%s,%s)",[shipping,cartItems,self.currentTotal,self.current_username])
+
         self.currentTotal = 0.00
         self.cursor.execute("DELETE FROM currentlyincart WHERE id = %s",[self.currentcartid])
         self.cursor.execute("UPDATE cart SET total = %s WHERE id=%s",("0",self.currentcartid))
@@ -268,6 +269,8 @@ class program:
         self.cursor.execute("DELETE FROM currentlyincart where id = %s", [self.currentcartid])
         self.cursor.execute("DELETE FROM orderconfirmation WHERE id=%s",[self.currentcartid])
         self.cursor.execute("DELETE FROM cart WHERE cart.id=%s",[self.currentcartid])
+        self.cursor.execute("DELETE FROM orderTable WHERE username = %s", [self.current_username])
+
         self.connection.commit()
     
         self.connection.commit()
@@ -279,6 +282,16 @@ class program:
         self.LogOut()
 
         return True
+
+    def returnOrderTable(self):
+        self.cursor.execute("SELECT * FROM orderTable;")  
+        table = self.cursor.fetchall()
+
+        if table == None:
+            return False
+        else:
+             return table    
+
 
 
 

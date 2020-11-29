@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>809</width>
-    <height>600</height>
+    <width>810</width>
+    <height>599</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -80,9 +80,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="searchForBooksButton">
+        <widget class="QPushButton" name="orderHistoryButton">
          <property name="text">
-          <string>Search For Books</string>
+          <string>Order History</string>
          </property>
         </widget>
        </item>
@@ -156,6 +156,15 @@
         <width>281</width>
         <height>401</height>
        </rect>
+      </property>
+      <property name="verticalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOn</enum>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOn</enum>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContents</enum>
       </property>
       <attribute name="horizontalHeaderVisible">
        <bool>false</bool>
@@ -344,11 +353,14 @@
      <widget class="QTableWidget" name="tableWidget">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>110</x>
         <y>280</y>
-        <width>781</width>
+        <width>571</width>
         <height>281</height>
        </rect>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContents</enum>
       </property>
      </widget>
     </widget>
@@ -356,7 +368,7 @@
      <widget class="QLabel" name="cartLabel">
       <property name="geometry">
        <rect>
-        <x>240</x>
+        <x>190</x>
         <y>50</y>
         <width>60</width>
         <height>16</height>
@@ -405,11 +417,14 @@
      <widget class="QTableWidget" name="tableWidget_2">
       <property name="geometry">
        <rect>
-        <x>225</x>
+        <x>195</x>
         <y>70</y>
-        <width>271</width>
+        <width>301</width>
         <height>211</height>
        </rect>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContents</enum>
       </property>
       <attribute name="horizontalHeaderVisible">
        <bool>false</bool>
@@ -429,6 +444,19 @@
       </property>
       <property name="text">
        <string>Back</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>220</x>
+        <y>470</y>
+        <width>291</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
       </property>
      </widget>
     </widget>
@@ -540,6 +568,53 @@
       </property>
      </widget>
     </widget>
+    <widget class="QWidget" name="orderHistoryPage">
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>350</x>
+        <y>70</y>
+        <width>171</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Order History</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="backOrderHistoryButton">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>440</y>
+        <width>113</width>
+        <height>32</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Back</string>
+      </property>
+     </widget>
+     <widget class="QTableWidget" name="orderTable">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>120</y>
+        <width>571</width>
+        <height>281</height>
+       </rect>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContents</enum>
+      </property>
+      <attribute name="horizontalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="verticalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+     </widget>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -547,7 +622,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>809</width>
+     <width>810</width>
      <height>22</height>
     </rect>
    </property>
