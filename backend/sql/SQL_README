@@ -1,0 +1,7 @@
+Run these two in order:
+1. Run _init_create.sql
+2. Run _init_insert.sql
+
+Notes:
+- t_ prefix refers to templates in which other queries may be constructed if necessary
+- No prefix is simply used for the program itself; feel free to add more
