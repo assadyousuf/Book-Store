@@ -32,7 +32,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         #Create Account Page
         self.pushButton_3.clicked.connect(lambda: self.createAccountFunc(self.createUsernameInput.text(),self.createPasswordInput.text()))
-        self.pushButton.clicked.connect(lambda: self.switchTo("Start Page"))
+        self.pushButton.clicked.connect(lambda: [self.switchTo("Start Page") ,self.createUsernameInput.clear() , self.createPasswordInput.clear()])
         
 
         #logIn Page
@@ -46,6 +46,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.checkoutButtonMainMenu.clicked.connect(lambda: self.setupCheckoutPage())
         self.LogOutButton.clicked.connect(lambda: self.logOut())
         self.deleteAccountButton.clicked.connect(lambda: self.deleteAccount())
+        self.checkoutButtonCheckout.clicked.connect(lambda: self.checkoutCart())
 
         #Filter Page
         self.genreButton.clicked.connect(lambda: self.displayByFilter(self.genreButton.text()) )
@@ -53,15 +54,15 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.isbnButton.clicked.connect(lambda: self.displayByFilter(self.isbnButton.text()) )
         self.publisherButton.clicked.connect(lambda: self.displayByFilter(self.publisherButton.text()) )
         self.nameButton.clicked.connect(lambda: self.displayByFilter(self.nameButton.text()) )
-        self.backFilterButton.clicked.connect(lambda: self.switchTo("Main Menu"))
+        self.backFilterButton.clicked.connect(lambda: self.setupMainMenu())
         
 
         #checkout Page
-        self.backButtonChcekoutPage.clicked.connect(lambda: self.switchTo("Main Menu"))
+        self.backButtonChcekoutPage.clicked.connect(lambda: self.setupMainMenu() )
 
 
-        #createAccount Page
-        self.pushButton_3.clicked.connect(lambda: self.createAccountFunc())
+
+        
         
     def switchTo(self,page):
         if page == "Main Menu":
@@ -82,11 +83,18 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         if result == False:
             self.label.setText("Username and Password are not valid")
             return
-        
-        self.displayCart(self.cartTableMainMenu)
+
+        self.setupMainMenu()    
+        self.usernameInput.clear(); self.passwordInput.clear()
+
+    def setupMainMenu(self):
+        if len(p.cart) > 0:
+            self.displayCart(self.cartTableMainMenu)
+
         self.setItemsInComboBox()
         self.userSatusLabel.setText("User: "+ p.current_username)
-        self.switchTo("Main Menu"); self.usernameInput.clear(); self.passwordInput.clear()
+        self.switchTo("Main Menu");
+
         
           
     def displayByFilter(self,text):
@@ -145,15 +153,18 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         table = p.SearchForBooks(str(self.comboBox.currentText()))
         p.AddBookToCart(str(self.comboBox.currentText()))
 
-        rowPosition = self.cartTableMainMenu.rowCount()
-        self.cartTableMainMenu.insertRow(rowPosition)
+        self.displayCart(self.cartTableMainMenu)
+        
+        #rowPosition = self.cartTableMainMenu.rowCount()
+        #self.cartTableMainMenu.insertRow(rowPosition)
 
-        for book in table:
-            self.cartTableMainMenu.setItem(rowPosition,0,QtWidgets.QTableWidgetItem(table[0][0]))
-            self.cartTableMainMenu.setItem(rowPosition,1,QtWidgets.QTableWidgetItem(table[0][1]))
+        #for book in table:
+            #self.cartTableMainMenu.setItem(rowPosition,0,QtWidgets.QTableWidgetItem(table[0][0]))
+            #self.cartTableMainMenu.setItem(rowPosition,1,QtWidgets.QTableWidgetItem(table[0][1]))
 
     def setupCheckoutPage(self):
-        self.displayCart(self.tableWidget_2)
+        if len(p.cart) > 0:
+            self.displayCart(self.tableWidget_2)
         self.switchTo("Checkout")
 
     def logOut(self):
@@ -161,11 +172,13 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.switchTo("Start Page")
             
     def createAccountFunc(self,username,password):
-        if username.isspace()==False or password.isspace()==False:
+        if username.isspace()==True or password.isspace()==True:
             self.createLabel.setText("Passwords and Usernames cannot be made of whitespace")
+            self.createUsernameInput.clear(); self.createPasswordInput.clear()
             return
         if username == "" or password == "":
             self.createLabel.setText("Passwords and Usernames cannot be empty")
+            self.createUsernameInput.clear(); self.createPasswordInput.clear()
             return
 
         result = p.CreateAccount(username,password)
@@ -174,6 +187,17 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def deleteAccount(self):
         p.deleteAccount()
         self.switchTo("Start Page")
+
+    def checkoutCart(self):
+        result = p.Checkout(self.adressInput.text())
+        if result == False:
+            self.label_2.setText("Cart is empty. Please add books to cart to checkout")
+            return
+        if result == True:
+            self.tableWidget_2.clear()
+            while(self.tableWidget_2.rowCount() > 0):
+                self.tableWidget_2.removeRow(0)
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
