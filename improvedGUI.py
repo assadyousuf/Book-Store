@@ -65,10 +65,12 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
         #order history page
-        self.backOrderHistoryButton.clicked.connect(lambda: self.setupMainMenu() )
+        self.backOrderHistoryButton.clicked.connect(lambda: [self.setupMainMenu()] )
 
 
-
+    def cleanUpOrderHistoryPage(self):
+         while self.orderTable.rowCount() > 0: 
+             self.orderTable.removeRow(0)
         
         
     def switchTo(self,page):
@@ -210,6 +212,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def logOut(self):
         p.LogOut()
         self.switchTo("Start Page")
+        self.cleanUpOrderHistoryPage()
             
     def createAccountFunc(self,username,password):
         if username.isspace()==True or password.isspace()==True:
