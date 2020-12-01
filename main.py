@@ -268,9 +268,11 @@ class program:
             return False
 
         
+        self.currentTotal=0
+
         for item in self.cart:
-            if self.cartTotalupToDate==False:
-                self.currentTotal= round( (self.currentTotal,2 + item.price) , 2)
+
+            self.currentTotal= round( (self.currentTotal + item.price) , 2)
             cartItems.append(item.name)
 
         print("Current Total:" + str(self.currentTotal) + "\nWould You like to purchase the following books in your cart:")
@@ -339,6 +341,10 @@ class program:
     
 
 
+
+if __name__ == "__main__":
+    p = program()
+    p.main()
 
 
    
