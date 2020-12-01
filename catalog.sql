@@ -16,383 +16,6 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
-SET default_tablespace = '';
-
-SET default_table_access_method = heap;
-
---
--- Name: author; Type: TABLE; Schema: public; Owner: assadyousuf
---
-
-CREATE TABLE public.author (
-    id integer NOT NULL,
-    firstname character varying(32),
-    lastname character varying(32)
-);
-
-
-ALTER TABLE public.author OWNER TO assadyousuf;
-
---
--- Name: author_id_seq; Type: SEQUENCE; Schema: public; Owner: assadyousuf
---
-
-CREATE SEQUENCE public.author_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.author_id_seq OWNER TO assadyousuf;
-
---
--- Name: author_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: assadyousuf
---
-
-ALTER SEQUENCE public.author_id_seq OWNED BY public.author.id;
-
-
---
--- Name: book; Type: TABLE; Schema: public; Owner: assadyousuf
---
-
-CREATE TABLE public.book (
-    isbn character varying(15) NOT NULL,
-    publisher integer NOT NULL,
-    name character varying(63),
-    description character varying(256),
-    edition character varying(256),
-    noofpages integer,
-    price character varying,
-    CONSTRAINT book_isbn_check CHECK (((isbn)::text <> ''::text))
-);
-
-
-ALTER TABLE public.book OWNER TO assadyousuf;
-
---
--- Name: cart; Type: TABLE; Schema: public; Owner: assadyousuf
---
-
-CREATE TABLE public.cart (
-    id integer NOT NULL,
-    total character varying
-);
-
-
-ALTER TABLE public.cart OWNER TO assadyousuf;
-
---
--- Name: cart_id_seq; Type: SEQUENCE; Schema: public; Owner: assadyousuf
---
-
-CREATE SEQUENCE public.cart_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.cart_id_seq OWNER TO assadyousuf;
-
---
--- Name: cart_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: assadyousuf
---
-
-ALTER SEQUENCE public.cart_id_seq OWNED BY public.cart.id;
-
-
---
--- Name: currentlyincart; Type: TABLE; Schema: public; Owner: assadyousuf
---
-
-CREATE TABLE public.currentlyincart (
-    id integer NOT NULL,
-    isbn character varying(15),
-    uniqeid integer NOT NULL
-);
-
-
-ALTER TABLE public.currentlyincart OWNER TO assadyousuf;
-
---
--- Name: currentlyincart_uniqeid_seq; Type: SEQUENCE; Schema: public; Owner: assadyousuf
---
-
-CREATE SEQUENCE public.currentlyincart_uniqeid_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.currentlyincart_uniqeid_seq OWNER TO assadyousuf;
-
---
--- Name: currentlyincart_uniqeid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: assadyousuf
---
-
-ALTER SEQUENCE public.currentlyincart_uniqeid_seq OWNED BY public.currentlyincart.uniqeid;
-
-
---
--- Name: genre; Type: TABLE; Schema: public; Owner: assadyousuf
---
-
-CREATE TABLE public.genre (
-    id integer NOT NULL,
-    name character varying(15)
-);
-
-
-ALTER TABLE public.genre OWNER TO assadyousuf;
-
---
--- Name: genre_id_seq; Type: SEQUENCE; Schema: public; Owner: assadyousuf
---
-
-CREATE SEQUENCE public.genre_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.genre_id_seq OWNER TO assadyousuf;
-
---
--- Name: genre_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: assadyousuf
---
-
-ALTER SEQUENCE public.genre_id_seq OWNED BY public.genre.id;
-
-
---
--- Name: has; Type: TABLE; Schema: public; Owner: assadyousuf
---
-
-CREATE TABLE public.has (
-    username character varying(15) NOT NULL,
-    id integer NOT NULL
-);
-
-
-ALTER TABLE public.has OWNER TO assadyousuf;
-
---
--- Name: hasgenre; Type: TABLE; Schema: public; Owner: assadyousuf
---
-
-CREATE TABLE public.hasgenre (
-    id integer NOT NULL,
-    isbn character varying(15) NOT NULL,
-    CONSTRAINT hasgenre_isbn_check CHECK (((isbn)::text <> ''::text))
-);
-
-
-ALTER TABLE public.hasgenre OWNER TO assadyousuf;
-
---
--- Name: hasseries; Type: TABLE; Schema: public; Owner: assadyousuf
---
-
-CREATE TABLE public.hasseries (
-    id integer NOT NULL,
-    isbn character varying(15) NOT NULL,
-    CONSTRAINT hasseries_isbn_check CHECK (((isbn)::text <> ''::text))
-);
-
-
-ALTER TABLE public.hasseries OWNER TO assadyousuf;
-
---
--- Name: ordertable; Type: TABLE; Schema: public; Owner: assadyousuf
---
-
-CREATE TABLE public.ordertable (
-    id integer NOT NULL,
-    address character varying(50),
-    books text[],
-    total double precision,
-    username character varying(50)
-);
-
-
-ALTER TABLE public.ordertable OWNER TO assadyousuf;
-
---
--- Name: ordertable_id_seq; Type: SEQUENCE; Schema: public; Owner: assadyousuf
---
-
-CREATE SEQUENCE public.ordertable_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.ordertable_id_seq OWNER TO assadyousuf;
-
---
--- Name: ordertable_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: assadyousuf
---
-
-ALTER SEQUENCE public.ordertable_id_seq OWNED BY public.ordertable.id;
-
-
---
--- Name: publisher; Type: TABLE; Schema: public; Owner: assadyousuf
---
-
-CREATE TABLE public.publisher (
-    id integer NOT NULL,
-    name character varying(63),
-    publishdate date
-);
-
-
-ALTER TABLE public.publisher OWNER TO assadyousuf;
-
---
--- Name: publisher_id_seq; Type: SEQUENCE; Schema: public; Owner: assadyousuf
---
-
-CREATE SEQUENCE public.publisher_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.publisher_id_seq OWNER TO assadyousuf;
-
---
--- Name: publisher_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: assadyousuf
---
-
-ALTER SEQUENCE public.publisher_id_seq OWNED BY public.publisher.id;
-
-
---
--- Name: series; Type: TABLE; Schema: public; Owner: assadyousuf
---
-
-CREATE TABLE public.series (
-    id integer NOT NULL,
-    name character varying(63)
-);
-
-
-ALTER TABLE public.series OWNER TO assadyousuf;
-
---
--- Name: series_id_seq; Type: SEQUENCE; Schema: public; Owner: assadyousuf
---
-
-CREATE SEQUENCE public.series_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.series_id_seq OWNER TO assadyousuf;
-
---
--- Name: series_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: assadyousuf
---
-
-ALTER SEQUENCE public.series_id_seq OWNED BY public.series.id;
-
-
---
--- Name: useraccount; Type: TABLE; Schema: public; Owner: assadyousuf
---
-
-CREATE TABLE public.useraccount (
-    username character varying(15) NOT NULL,
-    password character varying(128)
-);
-
-
-ALTER TABLE public.useraccount OWNER TO assadyousuf;
-
---
--- Name: writtenby; Type: TABLE; Schema: public; Owner: assadyousuf
---
-
-CREATE TABLE public.writtenby (
-    isbn character varying(15) NOT NULL,
-    authorid integer
-);
-
-
-ALTER TABLE public.writtenby OWNER TO assadyousuf;
-
---
--- Name: author id; Type: DEFAULT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.author ALTER COLUMN id SET DEFAULT nextval('public.author_id_seq'::regclass);
-
-
---
--- Name: cart id; Type: DEFAULT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.cart ALTER COLUMN id SET DEFAULT nextval('public.cart_id_seq'::regclass);
-
-
---
--- Name: currentlyincart uniqeid; Type: DEFAULT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.currentlyincart ALTER COLUMN uniqeid SET DEFAULT nextval('public.currentlyincart_uniqeid_seq'::regclass);
-
-
---
--- Name: genre id; Type: DEFAULT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.genre ALTER COLUMN id SET DEFAULT nextval('public.genre_id_seq'::regclass);
-
-
---
--- Name: ordertable id; Type: DEFAULT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.ordertable ALTER COLUMN id SET DEFAULT nextval('public.ordertable_id_seq'::regclass);
-
-
---
--- Name: publisher id; Type: DEFAULT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.publisher ALTER COLUMN id SET DEFAULT nextval('public.publisher_id_seq'::regclass);
-
-
---
--- Name: series id; Type: DEFAULT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.series ALTER COLUMN id SET DEFAULT nextval('public.series_id_seq'::regclass);
-
-
 --
 -- Data for Name: author; Type: TABLE DATA; Schema: public; Owner: assadyousuf
 --
@@ -408,6 +31,23 @@ COPY public.author (id, firstname, lastname) FROM stdin;
 8	heaven	halberto
 9	ivan	imaginary
 10	john	johnson
+\.
+
+
+--
+-- Data for Name: publisher; Type: TABLE DATA; Schema: public; Owner: assadyousuf
+--
+
+COPY public.publisher (id, name, publishdate) FROM stdin;
+1	Herzog-Hermann	2020-02-09
+2	Ryan, Nitzsche and Little	1912-10-21
+3	Kemmer-Hoeger	2010-12-12
+4	Walter, Grimes and Kirlin	1912-12-10
+5	Wehner Group	1993-08-30
+6	Batz and Sons	1940-01-06
+7	Kshlerin Inc	1974-12-03
+8	Huels, Schamberger and Wilderman	1974-04-08
+9	Bernier-Purdy	1923-09-09
 \.
 
 
@@ -456,7 +96,7 @@ COPY public.cart (id, total) FROM stdin;
 12	0
 13	0
 2	0
-1	0.0
+1	0
 \.
 
 
@@ -541,6 +181,30 @@ COPY public.hasgenre (id, isbn) FROM stdin;
 
 
 --
+-- Data for Name: series; Type: TABLE DATA; Schema: public; Owner: assadyousuf
+--
+
+COPY public.series (id, name) FROM stdin;
+1	The land before time
+3	Waterland
+4	Small Town Murder Songs
+5	Antboy
+6	Bullet in the Head
+7	Grace
+9	Mighty Aphrodite
+10	Riders of the Purple Sage
+11	Brazilian Western (Faroeste Caboclo)
+12	Bad Guy (Nabbeun namja)
+13	Fatherland
+14	Accident (Yi ngoi)
+15	I Want You
+16	Rain Over Santiago (Il pleut sur Santiago)
+8	In Praise of Love (Eloge de lamour)
+2	Killer (Tueur a gages)
+\.
+
+
+--
 -- Data for Name: hasseries; Type: TABLE DATA; Schema: public; Owner: assadyousuf
 --
 
@@ -574,48 +238,6 @@ COPY public.hasseries (id, isbn) FROM stdin;
 --
 
 COPY public.ordertable (id, address, books, total, username) FROM stdin;
-10	Tempe	{"Prizzis Honor","Prizzis Honor"}	120	cdalfaro
-\.
-
-
---
--- Data for Name: publisher; Type: TABLE DATA; Schema: public; Owner: assadyousuf
---
-
-COPY public.publisher (id, name, publishdate) FROM stdin;
-1	Herzog-Hermann	2020-02-09
-2	Ryan, Nitzsche and Little	1912-10-21
-3	Kemmer-Hoeger	2010-12-12
-4	Walter, Grimes and Kirlin	1912-12-10
-5	Wehner Group	1993-08-30
-6	Batz and Sons	1940-01-06
-7	Kshlerin Inc	1974-12-03
-8	Huels, Schamberger and Wilderman	1974-04-08
-9	Bernier-Purdy	1923-09-09
-\.
-
-
---
--- Data for Name: series; Type: TABLE DATA; Schema: public; Owner: assadyousuf
---
-
-COPY public.series (id, name) FROM stdin;
-1	The land before time
-3	Waterland
-4	Small Town Murder Songs
-5	Antboy
-6	Bullet in the Head
-7	Grace
-9	Mighty Aphrodite
-10	Riders of the Purple Sage
-11	Brazilian Western (Faroeste Caboclo)
-12	Bad Guy (Nabbeun namja)
-13	Fatherland
-14	Accident (Yi ngoi)
-15	I Want You
-16	Rain Over Santiago (Il pleut sur Santiago)
-8	In Praise of Love (Eloge de lamour)
-2	Killer (Tueur a gages)
 \.
 
 
@@ -679,7 +301,7 @@ SELECT pg_catalog.setval('public.author_id_seq', 10, true);
 -- Name: cart_id_seq; Type: SEQUENCE SET; Schema: public; Owner: assadyousuf
 --
 
-SELECT pg_catalog.setval('public.cart_id_seq', 32, true);
+SELECT pg_catalog.setval('public.cart_id_seq', 33, true);
 
 
 --
@@ -715,190 +337,6 @@ SELECT pg_catalog.setval('public.publisher_id_seq', 9, true);
 --
 
 SELECT pg_catalog.setval('public.series_id_seq', 16, true);
-
-
---
--- Name: author author_pkey; Type: CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.author
-    ADD CONSTRAINT author_pkey PRIMARY KEY (id);
-
-
---
--- Name: book book_pkey; Type: CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.book
-    ADD CONSTRAINT book_pkey PRIMARY KEY (isbn);
-
-
---
--- Name: cart cart_pkey; Type: CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.cart
-    ADD CONSTRAINT cart_pkey PRIMARY KEY (id);
-
-
---
--- Name: currentlyincart currentlyincart_pkey; Type: CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.currentlyincart
-    ADD CONSTRAINT currentlyincart_pkey PRIMARY KEY (uniqeid);
-
-
---
--- Name: genre genre_pkey; Type: CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.genre
-    ADD CONSTRAINT genre_pkey PRIMARY KEY (id);
-
-
---
--- Name: has has_pkey; Type: CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.has
-    ADD CONSTRAINT has_pkey PRIMARY KEY (username);
-
-
---
--- Name: hasgenre hasgenre_pkey; Type: CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.hasgenre
-    ADD CONSTRAINT hasgenre_pkey PRIMARY KEY (id, isbn);
-
-
---
--- Name: hasseries hasseries_pkey; Type: CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.hasseries
-    ADD CONSTRAINT hasseries_pkey PRIMARY KEY (id, isbn);
-
-
---
--- Name: ordertable ordertable_pkey; Type: CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.ordertable
-    ADD CONSTRAINT ordertable_pkey PRIMARY KEY (id);
-
-
---
--- Name: publisher publisher_pkey; Type: CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.publisher
-    ADD CONSTRAINT publisher_pkey PRIMARY KEY (id);
-
-
---
--- Name: series series_pkey; Type: CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.series
-    ADD CONSTRAINT series_pkey PRIMARY KEY (id);
-
-
---
--- Name: useraccount useraccount_pkey; Type: CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.useraccount
-    ADD CONSTRAINT useraccount_pkey PRIMARY KEY (username);
-
-
---
--- Name: writtenby writtenby_pkey; Type: CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.writtenby
-    ADD CONSTRAINT writtenby_pkey PRIMARY KEY (isbn);
-
-
---
--- Name: book book_publisher_fkey; Type: FK CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.book
-    ADD CONSTRAINT book_publisher_fkey FOREIGN KEY (publisher) REFERENCES public.publisher(id);
-
-
---
--- Name: currentlyincart currentlyincart_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.currentlyincart
-    ADD CONSTRAINT currentlyincart_id_fkey FOREIGN KEY (id) REFERENCES public.cart(id);
-
-
---
--- Name: currentlyincart currentlyincart_isbn_fkey; Type: FK CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.currentlyincart
-    ADD CONSTRAINT currentlyincart_isbn_fkey FOREIGN KEY (isbn) REFERENCES public.book(isbn);
-
-
---
--- Name: has has_cartid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.has
-    ADD CONSTRAINT has_cartid_fkey FOREIGN KEY (id) REFERENCES public.cart(id);
-
-
---
--- Name: hasgenre hasgenre_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.hasgenre
-    ADD CONSTRAINT hasgenre_id_fkey FOREIGN KEY (id) REFERENCES public.genre(id);
-
-
---
--- Name: hasgenre hasgenre_isbn_fkey; Type: FK CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.hasgenre
-    ADD CONSTRAINT hasgenre_isbn_fkey FOREIGN KEY (isbn) REFERENCES public.book(isbn);
-
-
---
--- Name: hasseries hasseries_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.hasseries
-    ADD CONSTRAINT hasseries_id_fkey FOREIGN KEY (id) REFERENCES public.series(id);
-
-
---
--- Name: hasseries hasseries_isbn_fkey; Type: FK CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.hasseries
-    ADD CONSTRAINT hasseries_isbn_fkey FOREIGN KEY (isbn) REFERENCES public.book(isbn);
-
-
---
--- Name: writtenby writtenby_authorid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.writtenby
-    ADD CONSTRAINT writtenby_authorid_fkey FOREIGN KEY (authorid) REFERENCES public.author(id);
-
-
---
--- Name: writtenby writtenby_isbn_fkey; Type: FK CONSTRAINT; Schema: public; Owner: assadyousuf
---
-
-ALTER TABLE ONLY public.writtenby
-    ADD CONSTRAINT writtenby_isbn_fkey FOREIGN KEY (isbn) REFERENCES public.book(isbn);
 
 
 --
