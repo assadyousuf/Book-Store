@@ -1,3 +1,4 @@
+from os import name
 import sys
 import getpass
 import psycopg2
@@ -69,7 +70,7 @@ class program:
             record = self.cursor.fetchall()
             for row in record: #loops through table and finds the rows where username matches current user logged in and adds books to cart
                 if(row[2] == self.current_username):
-                    cartEntry = cartObject(row[5],float(row[9]))
+                    cartEntry = cartObject(row[6], round(float(row[10]),2))
                     self.cart.append(cartEntry)
                     
             #grabbing totals for each cart:
@@ -77,7 +78,8 @@ class program:
             record = self.cursor.fetchall()
             for row in record: #loops through table and finds the rows where username matches current user logged in and adds books to cart
                 if(row[1] == self.current_username):
-                    self.currentTotal += float(row[2])
+                    covrt = self.currentTotal + float(row[2])
+                    self.currentTotal =round( covrt,2)
                     self.cartTotalupToDate=True
 
 
@@ -95,6 +97,7 @@ class program:
     def LogOut(self):
        # global current_username,current_password,currentlyLoggedIn,cart,cursor,cartid,currentTotal,currentcartid
         self.current_username, self.current_password, self.cart,self.currentlyLoggedIn,self.currentTotal,self.currentcartid = "", "", [],False,0,0
+     
 
     def CreateAccount(self,newUsername,newPassword):
        # global current_username,current_password,currentlyLoggedIn,cart,cursor,currentTotal,currentcartid 
@@ -168,7 +171,7 @@ class program:
             print("Book does not exist in our catalog!\n")
             return False
     
-        cartEntry = cartObject(record[2],float(record[6]))
+        cartEntry = cartObject(record[2],round(float(record[6]),2))
         isbn = record[0]
         self.cart.append(cartEntry)
         
@@ -176,7 +179,7 @@ class program:
         record = self.cursor.fetchall()
         for row in record:
             if row[1] == self.current_username:
-                self.currentTotal+= float(cartEntry.price)
+                self.currentTotal = round( (self.currentTotal + float(cartEntry.price) ) , 2)
                 string = str(self.currentTotal)
                 self.cursor.execute("UPDATE cart SET total = %s WHERE id=%s",(string,row[0]))    
                 self.cursor.execute("INSERT INTO currentlyincart (id,isbn) VALUES(%s,%s)" ,(row[0],isbn))   
@@ -187,6 +190,44 @@ class program:
 
             
         #verify book trying to be bought exists in book table and add to the global cart variable using cart.append("Book Name") and also add it to currentlyInCart Table
+
+
+    def deleteFromCart(self,nameOfBookDeletion):
+       
+      
+        self.cursor.execute("SELECT * FROM book WHERE book.name=%s",[nameOfBookDeletion])
+        record = self.cursor.fetchone()
+        if len(record) == 0:
+            print("Book does not exist in our catalog!\n")
+            return False
+    
+        #cartEntry = cartObject(record[2],float(record[6]))
+        isbn = record[0]
+        priceOfDeletedBook = round ( float(record[6]) , 2)
+
+        bookInCart = False
+
+        for book in self.cart:
+            if nameOfBookDeletion == book.name:
+                bookInCart=True
+                self.cart.remove(book)
+                break
+
+        if bookInCart == False:
+            return False    
+
+        self.cursor.execute("SELECT * FROM has NATURAL JOIN cart")
+        record = self.cursor.fetchall()
+        for row in record:
+            if row[1] == self.current_username:
+                self.currentTotal = round( (self.currentTotal  - priceOfDeletedBook) ,2)
+                string = str(self.currentTotal)
+                self.cursor.execute("UPDATE cart SET total =%s  WHERE id=%s",(self.currentTotal,row[0]))    
+                self.cursor.execute("DELETE FROM currentlyincart WHERE uniqeid IN (SELECT uniqeid FROM currentlyincart WHERE id = %s LIMIT %s)" ,[self.currentcartid,"1"])   
+                self.connection.commit()  
+                self.cartTotalupToDate = False
+
+        return True 
 
 
     def displayCart(self):
@@ -229,7 +270,7 @@ class program:
         
         for item in self.cart:
             if self.cartTotalupToDate==False:
-                self.currentTotal= self.currentTotal + item.price
+                self.currentTotal= round( (self.currentTotal,2 + item.price) , 2)
             cartItems.append(item.name)
 
         print("Current Total:" + str(self.currentTotal) + "\nWould You like to purchase the following books in your cart:")
@@ -267,7 +308,7 @@ class program:
         self.cursor.execute("DELETE FROM useraccount WHERE username = %s", [self.current_username])
         self.cursor.execute("DELETE FROM has WHERE has.username=%s",[self.current_username])
         self.cursor.execute("DELETE FROM currentlyincart where id = %s", [self.currentcartid])
-        self.cursor.execute("DELETE FROM orderconfirmation WHERE id=%s",[self.currentcartid])
+        self.cursor.execute("DELETE FROM ordertable WHERE id=%s",[self.currentcartid])
         self.cursor.execute("DELETE FROM cart WHERE cart.id=%s",[self.currentcartid])
         self.cursor.execute("DELETE FROM orderTable WHERE username = %s", [self.current_username])
 
@@ -284,16 +325,23 @@ class program:
         return True
 
     def returnOrderTable(self):
-        self.cursor.execute("SELECT * FROM orderTable;")  
+        self.cursor.execute("SELECT * FROM orderTable WHERE username = %s;", [self.current_username])  
         table = self.cursor.fetchall()
 
-        if table == None:
+        if len(table) == 0:
             return False
         else:
              return table    
 
 
 
+
+    
+
+
+
+
+   
 
 
 ######################################################################################
