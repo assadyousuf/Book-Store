@@ -48,6 +48,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.deleteAccountButton.clicked.connect(lambda: self.deleteAccount())
         self.checkoutButtonCheckout.clicked.connect(lambda: self.checkoutCart())
         self.orderHistoryButton.clicked.connect(lambda: self.switchToOrderHistoryPage())
+        self.deleteFromCartButton.clicked.connect(lambda: self.deleteFromCart())
        
 
         #Filter Page
@@ -150,10 +151,14 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def displayCart(self,table):
         cartList =  []
-        for book in p.cart:
-            cartList.append((str(book.name),str(book.price)))   
+        if len(p.cart) > 0:
+            for book in p.cart:
+                cartList.append((str(book.name),str(book.price)))   
 
-        numOfBooks = len(cartList); table.setRowCount(len(cartList)); table.setColumnCount(len(cartList[0]))
+        numOfBooks = len(cartList); table.setRowCount(len(cartList)); 
+
+        if len(p.cart) > 0:
+            table.setColumnCount(len(cartList[0]))
 
         for i in range(0,numOfBooks):
             for j in range(0,2):
@@ -164,6 +169,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         
         table.setItem(rowpositon,0,QtWidgets.QTableWidgetItem("Total"))
         table.setItem(rowpositon,1,QtWidgets.QTableWidgetItem(str(p.currentTotal)))
+
+        table.resizeColumnsToContents()
 
         
 
@@ -186,6 +193,13 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         #for book in table:
             #self.cartTableMainMenu.setItem(rowPosition,0,QtWidgets.QTableWidgetItem(table[0][0]))
             #self.cartTableMainMenu.setItem(rowPosition,1,QtWidgets.QTableWidgetItem(table[0][1]))
+
+    def deleteFromCart(self):
+        
+        p.deleteFromCart(str(self.comboBox.currentText()))
+
+        self.displayCart(self.cartTableMainMenu)
+
 
     def setupCheckoutPage(self):
         if len(p.cart) > 0:
@@ -221,12 +235,16 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             return
         if result == True:
             self.tableWidget_2.clear()
+            self.cartTableMainMenu.clear()
             while(self.tableWidget_2.rowCount() > 0):
                 self.tableWidget_2.removeRow(0)
+            while(self.cartTableMainMenu.rowCount() > 0 ):
+                self.cartTableMainMenu.removeRow(0)   
 
     def switchToOrderHistoryPage(self):
         table = p.returnOrderTable()
         if table == False:
+            self.switchTo("Order History Page")
             return
 
         #model = QtGui.QStandardItemModel()
@@ -258,6 +276,9 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
        
         self.orderTable.resizeColumnsToContents()
         self.switchTo("Order History Page")
+        
+   
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
@@ -266,240 +287,3 @@ if __name__ == "__main__":
     sys.exit(app.exec_())
 
 
-""""
-class Ui_MainWindow(object):
-
-    
-    def addEventListeners(self):   
-        self.LogInButton.clicked.connect(self.clickedLogInButton(self.usernameInput.text(),self.passwordInput.text())) 
-        
-
-    def clickedLogInButton(self,userText,passText):
-        result = p.logIn(userText,passText)
-        if result == False:
-            self.label.setText("Username and Password is not valid. Please try again")
-        elif result == True:
-           self.stackedWidget.setCurrentIndex(1)     
-
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 600)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setObjectName("centralwidget")
-        self.stackedWidget = QtWidgets.QStackedWidget(self.centralwidget)
-        self.stackedWidget.setGeometry(QtCore.QRect(10, -10, 791, 561))
-        self.stackedWidget.setObjectName("stackedWidget")
-        self.StartPage = QtWidgets.QWidget()
-        self.StartPage.setObjectName("StartPage")
-        self.verticalLayoutWidget = QtWidgets.QWidget(self.StartPage)
-        self.verticalLayoutWidget.setGeometry(QtCore.QRect(280, 10, 161, 501))
-        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.LogInButton = QtWidgets.QPushButton(self.verticalLayoutWidget)
-        self.LogInButton.setObjectName("LogInButton")
-    
-        self.verticalLayout.addWidget(self.LogInButton)
-        self.createAccountButton = QtWidgets.QPushButton(self.verticalLayoutWidget)
-        self.createAccountButton.setObjectName("createAccountButton")
-        self.verticalLayout.addWidget(self.createAccountButton)
-        self.quitButton = QtWidgets.QPushButton(self.verticalLayoutWidget)
-        self.quitButton.setObjectName("quitButton")
-        self.verticalLayout.addWidget(self.quitButton)
-        self.stackedWidget.addWidget(self.StartPage)
-        self.mainMenu = QtWidgets.QWidget()
-        self.mainMenu.setObjectName("mainMenu")
-        self.verticalLayoutWidget_2 = QtWidgets.QWidget(self.mainMenu)
-        self.verticalLayoutWidget_2.setGeometry(QtCore.QRect(230, 10, 261, 261))
-        self.verticalLayoutWidget_2.setObjectName("verticalLayoutWidget_2")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_2)
-        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.filterByBooksButton = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
-        self.filterByBooksButton.setObjectName("filterByBooksButton")
-        self.verticalLayout_2.addWidget(self.filterByBooksButton)
-        self.displayCartButton = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
-        self.displayCartButton.setObjectName("displayCartButton")
-        self.verticalLayout_2.addWidget(self.displayCartButton)
-        self.searchForBooksButton = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
-        self.searchForBooksButton.setObjectName("searchForBooksButton")
-        self.verticalLayout_2.addWidget(self.searchForBooksButton)
-        self.checkoutButton = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
-        self.checkoutButton.setObjectName("checkoutButton")
-        self.verticalLayout_2.addWidget(self.checkoutButton)
-        self.deleteAccountButton = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
-        self.deleteAccountButton.setObjectName("deleteAccountButton")
-        self.verticalLayout_2.addWidget(self.deleteAccountButton)
-        self.pushButton = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
-        self.pushButton.setObjectName("pushButton")
-        self.verticalLayout_2.addWidget(self.pushButton)
-        self.addToCartInput = QtWidgets.QLineEdit(self.mainMenu)
-        self.addToCartInput.setGeometry(QtCore.QRect(240, 310, 241, 21))
-        self.addToCartInput.setObjectName("addToCartInput")
-        self.backButtonSearchPage = QtWidgets.QPushButton(self.mainMenu)
-        self.backButtonSearchPage.setGeometry(QtCore.QRect(370, 340, 113, 32))
-        self.backButtonSearchPage.setObjectName("backButtonSearchPage")
-        self.addBookToCartButton = QtWidgets.QPushButton(self.mainMenu)
-        self.addBookToCartButton.setGeometry(QtCore.QRect(230, 340, 113, 32))
-        self.addBookToCartButton.setObjectName("addBookToCartButton")
-        self.label_2 = QtWidgets.QLabel(self.mainMenu)
-        self.label_2.setEnabled(False)
-        self.label_2.setGeometry(QtCore.QRect(300, 370, 141, 61))
-        self.label_2.setObjectName("label_2")
-        self.stackedWidget.addWidget(self.mainMenu)
-        self.LogInPage = QtWidgets.QWidget()
-        self.LogInPage.setObjectName("LogInPage")
-        self.horizontalLayoutWidget = QtWidgets.QWidget(self.LogInPage)
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(170, 140, 401, 81))
-        self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.usernameLabel = QtWidgets.QLabel(self.horizontalLayoutWidget)
-        self.usernameLabel.setObjectName("usernameLabel")
-        self.horizontalLayout.addWidget(self.usernameLabel)
-        self.usernameInput = QtWidgets.QLineEdit(self.horizontalLayoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.usernameInput.sizePolicy().hasHeightForWidth())
-        self.usernameInput.setSizePolicy(sizePolicy)
-        self.usernameInput.setObjectName("usernameInput")
-        self.horizontalLayout.addWidget(self.usernameInput)
-        self.horizontalLayoutWidget_2 = QtWidgets.QWidget(self.LogInPage)
-        self.horizontalLayoutWidget_2.setGeometry(QtCore.QRect(170, 230, 401, 81))
-        self.horizontalLayoutWidget_2.setObjectName("horizontalLayoutWidget_2")
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget_2)
-        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.passwordLabel = QtWidgets.QLabel(self.horizontalLayoutWidget_2)
-        self.passwordLabel.setObjectName("passwordLabel")
-        self.horizontalLayout_2.addWidget(self.passwordLabel)
-        self.passwordInput = QtWidgets.QLineEdit(self.horizontalLayoutWidget_2)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.passwordInput.sizePolicy().hasHeightForWidth())
-        self.passwordInput.setSizePolicy(sizePolicy)
-        self.passwordInput.setObjectName("passwordInput")
-        self.horizontalLayout_2.addWidget(self.passwordInput)
-        self.pushButton_2 = QtWidgets.QPushButton(self.LogInPage)
-        self.pushButton_2.setGeometry(QtCore.QRect(300, 320, 113, 32))
-        self.pushButton_2.setObjectName("pushButton_2")
-        self.label = QtWidgets.QLabel(self.LogInPage)
-        self.label.setGeometry(QtCore.QRect(260, 110, 191, 21))
-        self.label.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.label.setObjectName("label")
-        self.stackedWidget.addWidget(self.LogInPage)
-        self.filterListPage = QtWidgets.QWidget()
-        self.filterListPage.setObjectName("filterListPage")
-        self.verticalLayoutWidget_3 = QtWidgets.QWidget(self.filterListPage)
-        self.verticalLayoutWidget_3.setGeometry(QtCore.QRect(260, 10, 211, 261))
-        self.verticalLayoutWidget_3.setObjectName("verticalLayoutWidget_3")
-        self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_3)
-        self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_4.setObjectName("verticalLayout_4")
-        self.genreButton = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
-        self.genreButton.setObjectName("genreButton")
-        self.verticalLayout_4.addWidget(self.genreButton)
-        self.seriesButon = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
-        self.seriesButon.setObjectName("seriesButon")
-        self.verticalLayout_4.addWidget(self.seriesButon)
-        self.isbnButton = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
-        self.isbnButton.setObjectName("isbnButton")
-        self.verticalLayout_4.addWidget(self.isbnButton)
-        self.publisherButton = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
-        self.publisherButton.setObjectName("publisherButton")
-        self.verticalLayout_4.addWidget(self.publisherButton)
-        self.nameButton = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
-        self.nameButton.setObjectName("nameButton")
-        self.verticalLayout_4.addWidget(self.nameButton)
-        self.backFilterButton = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
-        self.backFilterButton.setObjectName("backFilterButton")
-        self.verticalLayout_4.addWidget(self.backFilterButton)
-        self.tableWidget = QtWidgets.QTableWidget(self.filterListPage)
-        self.tableWidget.setGeometry(QtCore.QRect(0, 280, 781, 281))
-        self.tableWidget.setObjectName("tableWidget")
-        self.tableWidget.setColumnCount(0)
-        self.tableWidget.setRowCount(0)
-        self.stackedWidget.addWidget(self.filterListPage)
-        self.checkoutPage = QtWidgets.QWidget()
-        self.checkoutPage.setObjectName("checkoutPage")
-        self.cartList = QtWidgets.QListWidget(self.checkoutPage)
-        self.cartList.setGeometry(QtCore.QRect(230, 60, 201, 221))
-        self.cartList.setObjectName("cartList")
-        self.cartLabel = QtWidgets.QLabel(self.checkoutPage)
-        self.cartLabel.setGeometry(QtCore.QRect(300, 40, 60, 16))
-        self.cartLabel.setObjectName("cartLabel")
-        self.checkoutButtonCheckout = QtWidgets.QPushButton(self.checkoutPage)
-        self.checkoutButtonCheckout.setGeometry(QtCore.QRect(280, 360, 113, 32))
-        self.checkoutButtonCheckout.setObjectName("checkoutButtonCheckout")
-        self.addressLabel = QtWidgets.QLabel(self.checkoutPage)
-        self.addressLabel.setGeometry(QtCore.QRect(130, 310, 71, 16))
-        self.addressLabel.setObjectName("addressLabel")
-        self.adressInput = QtWidgets.QLineEdit(self.checkoutPage)
-        self.adressInput.setGeometry(QtCore.QRect(210, 310, 301, 21))
-        self.adressInput.setObjectName("adressInput")
-        self.stackedWidget.addWidget(self.checkoutPage)
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 22))
-        self.menubar.setObjectName("menubar")
-        MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
-
-        self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(0)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
-        #self.addEventListeners()
-        #self.LogInButton.pressed.connect(self.clickedLogInButton(self.usernameInput.text(),self.passwordInput.text()))
-
-      
-
-    def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.LogInButton.setText(_translate("MainWindow", "Log In"))
-        self.createAccountButton.setText(_translate("MainWindow", "Create Account"))
-        self.quitButton.setText(_translate("MainWindow", "Quit"))
-        self.filterByBooksButton.setText(_translate("MainWindow", "Filter Books By"))
-        self.displayCartButton.setText(_translate("MainWindow", "Display Cart"))
-        self.searchForBooksButton.setText(_translate("MainWindow", "Search For Books"))
-        self.checkoutButton.setText(_translate("MainWindow", "Checkout"))
-        self.deleteAccountButton.setText(_translate("MainWindow", "Delete Account"))
-        self.pushButton.setText(_translate("MainWindow", "Quit"))
-        self.backButtonSearchPage.setText(_translate("MainWindow", "Back"))
-        self.addBookToCartButton.setText(_translate("MainWindow", "Add To Cart"))
-        self.label_2.setText(_translate("MainWindow", "Book Added To Cart"))
-        self.usernameLabel.setText(_translate("MainWindow", "Username:"))
-        self.passwordLabel.setText(_translate("MainWindow", "Password:"))
-        self.pushButton_2.setText(_translate("MainWindow", "Log In"))
-        self.label.setText(_translate("MainWindow", "Enter Username and Password"))
-        self.genreButton.setText(_translate("MainWindow", "Genre"))
-        self.seriesButon.setText(_translate("MainWindow", "Series"))
-        self.isbnButton.setText(_translate("MainWindow", "ISBN"))
-        self.publisherButton.setText(_translate("MainWindow", "Publisher"))
-        self.nameButton.setText(_translate("MainWindow", "Name"))
-        self.backFilterButton.setText(_translate("MainWindow", "Back"))
-        self.cartLabel.setText(_translate("MainWindow", "Cart:"))
-        self.checkoutButtonCheckout.setText(_translate("MainWindow", "Checkout"))
-        self.addressLabel.setText(_translate("MainWindow", "Address:"))
-
-
-  
-  
-
-
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    ex = Ui_MainWindow()
-    w = QtWidgets.QMainWindow()
-    ex.setupUi(w)
-    w.show()
-
-    ex.LogInButton.clicked.connect(ex.usernameInput.clickedLogInButton(ex.usernameInput.text(),ex.passwordInput.text())) 
-    app.exec_()
-"""
