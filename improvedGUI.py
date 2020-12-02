@@ -13,10 +13,11 @@ from PyQt5 import QtCore, QtGui, QtWidgets,uic
 import sys
 from main import cartObject
 from main import program
+from support import Ui_MainWindow
 from tabulate import tabulate
 
 
-Ui_MainWindow, QtBaseClass = uic.loadUiType("GUI.ui")
+#Ui_MainWindow, QtBaseClass = uic.loadUiType("GUI.ui")
  
 p = program() 
 class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
