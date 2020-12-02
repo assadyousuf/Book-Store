@@ -342,10 +342,6 @@ class program:
 
 
 
-if __name__ == "__main__":
-    p = program()
-    p.main()
-
 
    
 
